@@ -12,7 +12,13 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Document, User, WorkflowStep, Attachment } from "@prisma/client";
-import { FileIcon, Clock, CheckCircle2, XCircle, User as UserIcon } from "lucide-react";
+import {
+  FileIcon,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  User as UserIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type DocumentWithAll = Document & {
@@ -21,25 +27,34 @@ type DocumentWithAll = Document & {
   steps: (WorkflowStep & { user: User })[];
 };
 
-export function DocumentDetailDialog({ 
-  document, 
+export function DocumentDetailDialog({
+  document,
   children,
   open,
-  onOpenChange
-}: { 
-  document: DocumentWithAll, 
-  children?: React.ReactNode,
-  open?: boolean,
-  onOpenChange?: (open: boolean) => void
+  onOpenChange,
+}: {
+  document: DocumentWithAll;
+  children?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "COMPLETED":
-        return <Badge className="bg-green-500 hover:bg-green-600">Завершено</Badge>;
+        return (
+          <Badge className="bg-green-500 hover:bg-green-600">Завершено</Badge>
+        );
       case "REJECTED":
         return <Badge variant="destructive">Отклонено</Badge>;
       case "IN_PROGRESS":
-        return <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200">В работе</Badge>;
+        return (
+          <Badge
+            variant="secondary"
+            className="bg-blue-100 text-blue-700 hover:bg-blue-200"
+          >
+            В работе
+          </Badge>
+        );
       default:
         return <Badge>{status}</Badge>;
     }
@@ -61,17 +76,26 @@ export function DocumentDetailDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {children && (
-        <DialogTrigger render={children} />
+        <DialogTrigger>
+          {typeof children === "string" ? (
+            <button>{children}</button>
+          ) : (
+            children
+          )}
+        </DialogTrigger>
       )}
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col p-0 overflow-hidden">
         <DialogHeader className="p-6 pb-0">
           <div className="flex items-center justify-between mb-2">
-            <DialogTitle className="text-2xl font-bold">{document.title}</DialogTitle>
+            <DialogTitle className="text-2xl font-bold">
+              {document.title}
+            </DialogTitle>
             {getStatusBadge(document.status)}
           </div>
           <DialogDescription className="flex items-center gap-2">
             <UserIcon className="h-3 w-3" />
-            Автор: {document.author.name} • {new Date(document.createdAt).toLocaleDateString()}
+            Автор: {document.author.name} •{" "}
+            {new Date(document.createdAt).toLocaleDateString()}
           </DialogDescription>
         </DialogHeader>
 
@@ -80,7 +104,9 @@ export function DocumentDetailDialog({
         <ScrollArea className="flex-1 p-6">
           <div className="space-y-6">
             <section>
-              <h4 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-2">Содержание</h4>
+              <h4 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-2">
+                Содержание
+              </h4>
               <div className="bg-gray-50 p-4 rounded-lg text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
                 {document.content || "Содержание отсутствует"}
               </div>
@@ -88,7 +114,9 @@ export function DocumentDetailDialog({
 
             {document.attachments.length > 0 && (
               <section>
-                <h4 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-2">Прикрепленные файлы</h4>
+                <h4 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-2">
+                  Прикрепленные файлы
+                </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {document.attachments.map((file) => (
                     <a
@@ -109,41 +137,52 @@ export function DocumentDetailDialog({
             )}
 
             <section>
-              <h4 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-4">История согласования</h4>
+              <h4 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-4">
+                История согласования
+              </h4>
               <div className="space-y-4">
                 {document.steps.map((step, index) => {
-                  const isActive = document.currentStep === index && document.status === "IN_PROGRESS";
+                  const isActive =
+                    document.currentStep === index &&
+                    document.status === "IN_PROGRESS";
                   return (
-                    <div 
-                      key={step.id} 
+                    <div
+                      key={step.id}
                       className={cn(
                         "relative flex gap-4 pl-2",
-                        isActive && "before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-blue-500 before:rounded-full"
+                        isActive &&
+                          "before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-blue-500 before:rounded-full",
                       )}
                     >
-                      <div className="mt-0.5">
-                        {getStepIcon(step.status)}
-                      </div>
+                      <div className="mt-0.5">{getStepIcon(step.status)}</div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-sm font-bold text-gray-900 truncate">
                             {step.user.name}
                           </p>
                           <span className="text-[10px] text-gray-400 whitespace-nowrap">
-                            {step.completedAt ? new Date(step.completedAt).toLocaleString() : "Ожидает"}
+                            {step.completedAt
+                              ? new Date(step.completedAt).toLocaleString()
+                              : "Ожидает"}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 mb-1">Шаг {index + 1}</p>
+                        <p className="text-xs text-gray-500 mb-1">
+                          Шаг {index + 1}
+                        </p>
                         {step.comment && (
                           <div className="mt-2 bg-red-50 border border-red-100 rounded p-2 text-xs text-red-800">
                             <strong>Комментарий:</strong> {step.comment}
                           </div>
                         )}
                         {step.status === "APPROVED" && (
-                          <p className="text-[11px] text-green-600 font-medium">Одобрено</p>
+                          <p className="text-[11px] text-green-600 font-medium">
+                            Одобрено
+                          </p>
                         )}
                         {isActive && (
-                          <p className="text-[11px] text-blue-600 font-bold animate-pulse">На подписи сейчас</p>
+                          <p className="text-[11px] text-blue-600 font-bold animate-pulse">
+                            На подписи сейчас
+                          </p>
                         )}
                       </div>
                     </div>
