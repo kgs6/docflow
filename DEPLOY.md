@@ -38,9 +38,16 @@ npm run dev
 ```
 
 ### Сборка и запуск в продакшн-режиме
+Copy static file in standalone directory
+```
+cp -r .next/static .next/standalone/.next/static
+cp -r public .next/standalone/public
+```
+
 1. Соберите проект:
    ```bash
    npm run build
+
    ```
 2. Запустите сервер:
    ```bash
