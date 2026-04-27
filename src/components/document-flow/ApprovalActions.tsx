@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { approveStep, rejectStep } from "@/lib/actions/workflow";
 import {
   Dialog,
   DialogContent,
@@ -22,30 +22,29 @@ export function ApprovalActions({
   documentId: string;
   userId: string;
 }) {
+  const router = useRouter();
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleApprove = async () => {
+  const performAction = async (action: "approve" | "reject", comment?: string) => {
     setLoading(true);
     try {
-      await approveStep(documentId, userId);
-    } catch {
-      alert("Ошибка при одобрении");
-    } finally {
-      setLoading(false);
-    }
-  };
+      const res = await fetch("/api/workflow", {
+        method: "POST",
+        body: JSON.stringify({ action, documentId, comment }),
+        headers: { "Content-Type": "application/json" },
+      });
 
-  const handleReject = async () => {
-    if (!comment) return;
-    setLoading(true);
-    try {
-      await rejectStep(documentId, userId, comment);
-      setRejectDialogOpen(false);
-      setComment("");
+      if (!res.ok) throw new Error();
+      
+      router.refresh();
+      if (action === "reject") {
+        setRejectDialogOpen(false);
+        setComment("");
+      }
     } catch {
-      alert("Ошибка при отклонении");
+      alert("Ошибка при выполнении действия");
     } finally {
       setLoading(false);
     }
@@ -56,24 +55,22 @@ export function ApprovalActions({
       <Button 
         variant="outline" 
         className="text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700"
-        onClick={handleApprove}
+        onClick={() => performAction("approve")}
         disabled={loading}
       >
         Одобрить
       </Button>
 
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
-        <DialogTrigger
-          render={
-            <Button
-              variant="outline"
-              className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
-              disabled={loading}
-            >
-              Отклонить
-            </Button>
-          }
-        />
+        <DialogTrigger asChild>
+          <Button
+            variant="outline"
+            className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+            disabled={loading}
+          >
+            Отклонить
+          </Button>
+        </DialogTrigger>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Отклонить документ</DialogTitle>
@@ -94,7 +91,7 @@ export function ApprovalActions({
           <DialogFooter>
             <Button 
               variant="destructive" 
-              onClick={handleReject}
+              onClick={() => performAction("reject", comment)}
               disabled={!comment || loading}
             >
               Отклонить
